@@ -24,7 +24,18 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const socket = io();
+// GitHub Pages does not host the Socket.IO server. Keep the interface responsive
+// and show a clear explanation instead of crashing before buttons are wired.
+const hasSocketServer = typeof window.io === 'function';
+const socket = hasSocketServer ? window.io() : {
+  connected: false,
+  on() { return this; },
+  emit(_event, ...args) {
+    const ack = args[args.length - 1];
+    if (typeof ack === 'function') ack({ ok: false, error: 'Online play needs the Arithmos server. Open the Render website URL, not the GitHub Pages URL.' });
+    return this;
+  }
+};
 let roomId = null, mySlot = null, roomData = null, selected = [], myName = '', toastTimer;
 let playerId = localStorage.getItem('arithmosPlayerId');
 if (!playerId) {
@@ -63,12 +74,12 @@ function renderReveal(d){const a=d.submissions?.A?.nums||[],b=d.submissions?.B?.
 function renderInventory(d){const me=d.players[mySlot],other=d.players[mySlot==='A'?'B':'A'];const make=(arr)=>sortedHand(arr).map(n=>`<span class="mini ${n>=6?'high':''}">${n}</span>`).join('')||'<span class="smallmuted">No numbers left</span>';$('inventoryA').innerHTML=make(me.hand);$('inventoryB').innerHTML=make(other.hand);$('inventoryBLabel').textContent=(other.name||'Opponent')+' · '+other.hand.length+' remaining'}
 function renderHistory(d){const list=$('historyList');$('historyCount').textContent=(d.history?.length||0)+' rounds';if(!d.history?.length){list.innerHTML='<div class="smallmuted">Your match history will appear here.</div>';return}list.innerHTML=[...d.history].reverse().map(h=>{const my=h.submissions?.[mySlot]?.nums||[],op=h.submissions?.[mySlot==='A'?'B':'A']?.nums||[];const mySum=my.reduce((a,b)=>a+b,0),opSum=op.reduce((a,b)=>a+b,0);const outcome=mySum===opSum?'tie':mySum>opSum?'win':'loss';return `<div class="historyitem"><div class="historytop"><span>ROUND ${String(h.round).padStart(2,'0')}</span><span class="tag ${outcome}">${outcome==='tie'?'TIE':outcome==='win'?'YOU WON':'OPPONENT WON'}</span></div><div class="historynums"><div class="hnums">${my.join(' + ')} = ${mySum}<small>Your choice</small></div><div class="hnums">${op.join(' + ')} = ${opSum}<small>Opponent</small></div></div></div>`}).join('')}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function request(event,data,success){if(!socket.connected){showError('The game server is reconnecting. Try again in a moment.');return}socket.emit(event,data,res=>{if(!res?.ok){showError(res?.error||'Something went wrong. Please try again.');return}clearError();if(success)success(res)})}
+function request(event,data,success){if(!hasSocketServer){showError('The buttons work, but this is the static GitHub copy. Online matches need the deployed Render website URL.');return}if(!socket.connected){showError('The game server is reconnecting. Try again in a moment.');return}socket.emit(event,data,res=>{if(!res?.ok){showError(res?.error||'Something went wrong. Please try again.');return}clearError();if(success)success(res)})}
 function createRoom(){clearError();myName=$('playerName').value.trim()||'Player A';request('createRoom',{name:myName,playerId},res=>{roomId=res.code;mySlot='A';$('roomCodeDisplay').textContent=roomId;view('lobbyView');applyRoomState({code:res.code,slot:'A',room:res.room})})}
 function joinRoom(){clearError();myName=$('playerName').value.trim()||'Player B';const code=$('roomInput').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){showError('Enter the 6-character room code.');return}request('joinRoom',{code,name:myName,playerId},res=>{roomId=code;mySlot='B';applyRoomState({code,slot:'B',room:res.room})})}
 function submitChoices(){if(selected.length!==2||!roomData)return;const nums=[...selected].sort((a,b)=>a-b);request('submitChoices',{code:roomId,playerId,nums},()=>{selected=[]})}
 function nextRound(){request('nextRound',{code:roomId,playerId},()=>{})}
 function resetUI(){const oldCode=roomId;socket.emit('leaveRoom',{code:oldCode,playerId});roomId=null;mySlot=null;roomData=null;selected=[];clearRoomMemory();view('setupView');$('connectionPill').textContent=socket.connected?'● Connected':'● Reconnecting…'}
 $('createBtn').addEventListener('click',createRoom);$('showJoinBtn').addEventListener('click',()=>$('joinFields').classList.toggle('hidden'));$('joinBtn').addEventListener('click',joinRoom);$('submitBtn').addEventListener('click',submitChoices);$('nextRoundBtn').addEventListener('click',nextRound);$('copyCodeBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(roomId);toast('Room code copied!')}catch{toast('Room code: '+roomId)}});$('leaveLobbyBtn').addEventListener('click',resetUI);$('leaveGameBtn').addEventListener('click',()=>{if(confirm('Leave this match? You can reopen this game in the same browser to reconnect while the server is running.'))resetUI()});$('newGameBtn').addEventListener('click',resetUI);$('roomInput').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6));
-$('firebaseHelp').classList.remove('hidden');$('firebaseHelp').innerHTML='No server setup required. Create a room, share the code, and play while this app is running.';
+$('firebaseHelp').classList.remove('hidden');if(hasSocketServer){$('firebaseHelp').innerHTML='No Firebase needed. Create a room, share the code, and play here.';}else{$('connectionPill').textContent='● Server required';$('firebaseHelp').innerHTML='You are viewing a static copy. GitHub Pages cannot run the live multiplayer server. Deploy this repo on Render, then open the Render URL to play online.';}
 </script></body></html>
