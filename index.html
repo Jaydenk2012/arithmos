@@ -76,13 +76,14 @@ function translatePage(){
  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),nodes=[];
  while(walker.nextNode())nodes.push(walker.currentNode);
  for(const node of nodes){
-  const raw=node.nodeValue,leading=(raw.match(/^\\s*/)||[''])[0],trailing=(raw.match(/\\s*$/)||[''])[0],value=raw.trim();
+  if(node.__arithmosOriginal===undefined)node.__arithmosOriginal=node.nodeValue;
+  const raw=node.__arithmosOriginal,leading=(raw.match(/^\\s*/)||[''])[0],trailing=(raw.match(/\\s*$/)||[''])[0],value=raw.trim();
   if(value&&!node.parentElement?.closest('script,style,option')){
-   const out=translateText(value);if(out!==value)node.nodeValue=leading+out+trailing;
+   const out=translateText(value);node.nodeValue=leading+out+trailing;
   }
  }
- const name=$('playerName');if(name)name.placeholder=translateText('e.g. Jayden');
- const room=$('roomInput');if(room)room.placeholder='ABC123';
+ const name=$('playerName');if(name){if(name.dataset.originalPlaceholder===undefined)name.dataset.originalPlaceholder=name.placeholder;name.placeholder=translateText(name.dataset.originalPlaceholder)}
+ const room=$('roomInput');if(room){if(room.dataset.originalPlaceholder===undefined)room.dataset.originalPlaceholder=room.placeholder;room.placeholder=translateText(room.dataset.originalPlaceholder)}
 }
 $('languageSelect').value=currentLanguage;
 $('languageSelect').addEventListener('change',e=>{currentLanguage=e.target.value;localStorage.setItem('arithmosLanguage',currentLanguage);translatePage();render();});
