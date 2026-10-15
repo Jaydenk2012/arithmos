@@ -74,6 +74,40 @@ function sendRoom(room) {
 }
 function responseRoom(room, slot) { return { code: room.code, slot, room: publicRoom(room, slot) }; }
 function ackError(ack, error) { if (typeof ack === 'function') ack({ ok: false, error }); }
+
+function aiPick(room, style, difficulty) {
+  const hand = room.players.B.hand;
+  const pairs = [];
+  for (let i = 0; i < hand.length; i++) for (let j = i + 1; j < hand.length; j++) {
+    const nums = [hand[i], hand[j]].sort((a, b) => a - b);
+    const sum = nums[0] + nums[1];
+    const max = Math.max(...nums);
+    const remaining = removePicks(hand, nums);
+    const value = (sum * 1.0) + max * 0.15 - remaining.length * 0.01;
+    pairs.push({ nums, sum, max, value });
+  }
+  if (!pairs.length) return [];
+  if (style === 'random') return pairs[Math.floor(Math.random() * pairs.length)].nums;
+  const human = room.players.A.hand;
+  const humanPairs = [];
+  for (let i = 0; i < human.length; i++) for (let j = i + 1; j < human.length; j++) humanPairs.push(human[i] + human[j]);
+  const target = humanPairs.length ? humanPairs[Math.floor(humanPairs.length / 2)] : 8;
+  for (const p of pairs) {
+    const pressure = p.sum > target ? 2 : -2;
+    p.value = style === 'aggressive' ? p.sum * 1.6 + p.max * 0.7 + pressure
+      : style === 'defensive' ? -Math.abs(p.sum - target) * 1.3 + p.max * 0.15
+      : p.sum + pressure + p.max * 0.25;
+  }
+  pairs.sort((a, b) => b.value - a.value);
+  const pool = difficulty === 'easy' ? pairs.slice(Math.max(0, pairs.length - Math.ceil(pairs.length * 0.65))) : difficulty === 'normal' ? pairs.slice(0, Math.max(1, Math.ceil(pairs.length * 0.4))) : pairs.slice(0, Math.max(1, Math.ceil(pairs.length * 0.15)));
+  return pool[Math.floor(Math.random() * pool.length)].nums;
+}
+function submitAI(room) {
+  if (!room.ai || room.status !== 'playing' || room.submissions.B) return;
+  room.submissions.B = { nums: aiPick(room, room.ai.style, room.ai.difficulty), submittedAt: Date.now() };
+  resolveRound(room);
+}
+
 function resolveRound(room) {
   if (room.status !== 'playing' || !room.submissions.A || !room.submissions.B) return;
   const a = room.submissions.A.nums;
@@ -121,6 +155,28 @@ io.on('connection', socket => {
     sendRoom(room);
   });
 
+
+  socket.on('createAIRoom', (data = {}, ack) => {
+    if (!validPlayerId(data.playerId)) return ackError(ack, 'Could not identify this browser. Refresh and try again.');
+    let code;
+    for (let i = 0; i < 20; i++) { code = makeCode(); if (!rooms.has(code)) break; }
+    if (rooms.has(code)) return ackError(ack, 'Could not find a free room code. Please try again.');
+    const style = ['aggressive', 'smart', 'defensive', 'random'].includes(data.style) ? data.style : 'smart';
+    const difficulty = ['easy', 'normal', 'hard'].includes(data.difficulty) ? data.difficulty : 'normal';
+    const room = {
+      code, status: 'playing', round: 1, ai: { style, difficulty },
+      players: {
+        A: { playerId: data.playerId, socketId: socket.id, name: safeName(data.name, 'Player'), hand: hand(), score: 0 },
+        B: { playerId: 'ai-' + code, socketId: null, name: 'Arithmos AI', hand: hand(), score: 0 }
+      },
+      submissions: {}, history: [], createdAt: Date.now()
+    };
+    rooms.set(code, room);
+    submitAI(room);
+    if (typeof ack === 'function') ack({ ok: true, ...responseRoom(room, 'A') });
+    sendRoom(room);
+  });
+
   socket.on('joinRoom', (data = {}, ack) => {
     const code = String(data.code || '').toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(code)) return ackError(ack, 'Enter the 6-character room code.');
@@ -156,6 +212,7 @@ io.on('connection', socket => {
     const nums = Array.isArray(data.nums) ? data.nums : [];
     if (!validPick(room.players[slot], nums)) return ackError(ack, 'Choose two numbers that are still in your inventory.');
     room.submissions[slot] = { nums: [...nums].sort((a, b) => a - b), submittedAt: Date.now() };
+    if (room.ai && slot === 'A') submitAI(room);
     resolveRound(room);
     if (typeof ack === 'function') ack({ ok: true });
     sendRoom(room);
@@ -171,6 +228,7 @@ io.on('connection', socket => {
       room.round++;
       room.submissions = {};
       room.status = 'playing';
+      if (room.ai) submitAI(room);
       sendRoom(room);
     }
     if (typeof ack === 'function') ack({ ok: true });
