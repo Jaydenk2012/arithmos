@@ -34,7 +34,7 @@ const $ = id => document.getElementById(id);
 const translations = {
 en: {},
 es: {
-"Language":"Idioma","● Connecting":"● Conectando","● Connected":"● Conectado","● Reconnecting…":"● Reconectando…","● Server required":"● Se requiere servidor",
+"GAME MODE":"MODO DE JUEGO","AI STYLE":"ESTILO DE IA","DIFFICULTY":"DIFICULTAD","Language":"Idioma","● Connecting":"● Conectando","● Connected":"● Conectado","● Reconnecting…":"● Reconectando…","● Server required":"● Se requiere servidor",
 "Strategy, in numbers.":"Estrategia en números.","A simultaneous strategy game":"Un juego de estrategia simultáneo","Think ahead.":"Piensa por adelantado.","Play the numbers.":"Juega con los números.","Read your opponent. Spend your numbers wisely. Every move changes the game.":"Lee a tu rival. Usa tus números con inteligencia. Cada jugada cambia la partida.",
 "Enter the arena":"Entra en la arena","2 players · online":"2 jugadores · en línea","YOUR NAME":"TU NOMBRE","e.g. Jayden":"Tu nombre","Create a room ↗":"Crear sala ↗","Join a room":"Unirse a una sala","ROOM CODE":"CÓDIGO DE SALA","Join match":"Unirse a la partida","Both players submit secretly. Choices are revealed only after both submissions are locked in. Share your room code with your opponent.":"Ambos jugadores eligen en secreto. Las elecciones se revelan cuando los dos confirman. Comparte el código de sala con tu rival.",
 "Room created":"Sala creada","Waiting for your":"Esperando a tu","opponent.":"rival.","Send your opponent the room code. The match begins when they join.":"Envía el código a tu rival. La partida comienza cuando se una.","YOUR ROOM CODE":"CÓDIGO DE SALA","Copy room code":"Copiar código","Waiting for player 2 to join…":"Esperando al jugador 2…","Opponent joined! Starting…":"¡Se unió tu rival! Iniciando…","Back":"Volver",
@@ -44,7 +44,7 @@ es: {
 "Choose only two numbers.":"Elige solo dos números.","Room code copied!":"¡Código copiado!","The game server is reconnecting. Try again in a moment.":"El servidor se está reconectando. Inténtalo de nuevo.","Something went wrong. Please try again.":"Algo salió mal. Inténtalo de nuevo."
 },
 ko: {
-"Language":"언어","● Connecting":"● 연결 중","● Connected":"● 연결됨","● Reconnecting…":"● 재연결 중…","● Server required":"● 서버 필요",
+"GAME MODE":"게임 모드","AI STYLE":"AI 스타일","DIFFICULTY":"난이도","Language":"언어","● Connecting":"● 연결 중","● Connected":"● 연결됨","● Reconnecting…":"● 재연결 중…","● Server required":"● 서버 필요",
 "Strategy, in numbers.":"숫자로 펼치는 전략.","A simultaneous strategy game":"동시 진행 전략 게임","Think ahead.":"한 수 앞을 생각하고.","Play the numbers.":"숫자로 승부하세요.","Read your opponent. Spend your numbers wisely. Every move changes the game.":"상대의 수를 읽고 숫자를 현명하게 사용하세요. 모든 선택이 게임을 바꿉니다.",
 "Enter the arena":"게임에 입장하기","2 players · online":"2인 · 온라인","YOUR NAME":"플레이어 이름","e.g. Jayden":"이름 입력","Create a room ↗":"방 만들기 ↗","Join a room":"방 참가하기","ROOM CODE":"방 코드","Join match":"게임 참가","Both players submit secretly. Choices are revealed only after both submissions are locked in. Share your room code with your opponent.":"두 플레이어는 비밀리에 숫자 두 개를 선택합니다. 양쪽 모두 확정하면 선택이 공개됩니다. 상대에게 방 코드를 공유하세요.",
 "Room created":"방이 만들어졌어요","Waiting for your":"상대를","opponent.":"기다리는 중.","Send your opponent the room code. The match begins when they join.":"상대에게 방 코드를 보내세요. 상대가 참가하면 게임이 시작됩니다.","YOUR ROOM CODE":"내 방 코드","Copy room code":"방 코드 복사","Waiting for player 2 to join…":"두 번째 플레이어를 기다리는 중…","Opponent joined! Starting…":"상대가 참가했어요! 시작 중…","Back":"뒤로",
@@ -54,7 +54,7 @@ ko: {
 "Choose only two numbers.":"숫자는 두 개만 선택하세요.","Room code copied!":"방 코드를 복사했어요!","The game server is reconnecting. Try again in a moment.":"서버에 다시 연결 중이에요. 잠시 후 다시 시도하세요.","Something went wrong. Please try again.":"문제가 발생했어요. 다시 시도하세요."
 },
 zh: {
-"Language":"语言","● Connecting":"● 正在连接","● Connected":"● 已连接","● Reconnecting…":"● 正在重新连接…","● Server required":"● 需要服务器",
+"GAME MODE":"游戏模式","AI STYLE":"AI 风格","DIFFICULTY":"难度","Language":"语言","● Connecting":"● 正在连接","● Connected":"● 已连接","● Reconnecting…":"● 正在重新连接…","● Server required":"● 需要服务器",
 "Strategy, in numbers.":"数字策略对决。","A simultaneous strategy game":"一款同时出招的策略游戏","Think ahead.":"想得更远。","Play the numbers.":"用数字决胜。","Read your opponent. Spend your numbers wisely. Every move changes the game.":"读懂对手，谨慎使用数字。每一步都会改变战局。",
 "Enter the arena":"进入竞技场","2 players · online":"双人 · 在线","YOUR NAME":"你的名字","e.g. Jayden":"输入你的名字","Create a room ↗":"创建房间 ↗","Join a room":"加入房间","ROOM CODE":"房间代码","Join match":"加入对局","Both players submit secretly. Choices are revealed only after both submissions are locked in. Share your room code with your opponent.":"双方秘密选择两个数字。只有双方确认后，选择才会揭晓。把房间代码分享给对手。",
 "Room created":"房间已创建","Waiting for your":"正在等待","opponent.":"对手加入。","Send your opponent the room code. The match begins when they join.":"把房间代码发给对手。对手加入后游戏就会开始。","YOUR ROOM CODE":"你的房间代码","Copy room code":"复制房间代码","Waiting for player 2 to join…":"等待第二位玩家加入…","Opponent joined! Starting…":"对手已加入！正在开始…","Back":"返回",
@@ -79,6 +79,13 @@ function translatePage(){
  document.documentElement.lang=currentLanguage==='zh'?'zh-CN':currentLanguage;
  document.title=({en:'Arithmos — Strategy, in numbers.',es:'Arithmos — Estrategia en números.',ko:'Arithmos — 숫자 전략 게임.',zh:'Arithmos — 数字策略游戏。'})[currentLanguage];
  $('languageSelect').value=currentLanguage;
+ const optionWords={
+  en:{'Online multiplayer':'Online multiplayer','Play against AI':'Play against AI','Smart':'Smart','Aggressive':'Aggressive','Defensive':'Defensive','Random':'Random','Easy':'Easy','Normal':'Normal','Hard':'Hard','Create a room ↗':'Create a room ↗','Play against AI ↗':'Play against AI ↗'},
+  es:{'Online multiplayer':'Multijugador en línea','Play against AI':'Jugar contra la IA','Smart':'Estratégica','Aggressive':'Agresiva','Defensive':'Defensiva','Random':'Aleatoria','Easy':'Fácil','Normal':'Normal','Hard':'Difícil','Create a room ↗':'Crear sala ↗','Play against AI ↗':'Jugar contra la IA ↗'},
+  ko:{'Online multiplayer':'온라인 멀티플레이어','Play against AI':'AI와 대전','Smart':'전략형','Aggressive':'공격형','Defensive':'방어형','Random':'무작위','Easy':'쉬움','Normal':'보통','Hard':'어려움','Create a room ↗':'방 만들기 ↗','Play against AI ↗':'AI와 대전 ↗'},
+  zh:{'Online multiplayer':'在线多人游戏','Play against AI':'与 AI 对战','Smart':'策略型','Aggressive':'进攻型','Defensive':'防守型','Random':'随机','Easy':'简单','Normal':'普通','Hard':'困难','Create a room ↗':'创建房间 ↗','Play against AI ↗':'与 AI 对战 ↗'}
+ };
+ for(const id of ['gameMode','aiStyle','aiDifficulty']){const sel=$(id);if(sel)for(const opt of sel.options){if(opt.dataset.baseText===undefined)opt.dataset.baseText=opt.textContent;opt.textContent=optionWords[currentLanguage]?.[opt.dataset.baseText]||opt.dataset.baseText;}}
  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),nodes=[];
  while(walker.nextNode())nodes.push(walker.currentNode);
  for(const node of nodes){
